@@ -47,7 +47,8 @@ function triangulateTree(point, desc, outTriangles, pointIndex, degen) {
 
 			case 2:
 				if (node.descendents.length) {
-					return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+					if (degen) return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+					else triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
 					
 				} else {
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[2]], point, node.vertices[0], node.vertices[2]);
@@ -62,7 +63,8 @@ function triangulateTree(point, desc, outTriangles, pointIndex, degen) {
 			
 			case 3:
 				if (node.descendents.length) {
-					return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+					if (degen) return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+					else triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
 					
 				} else {
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[1]], point, node.vertices[0], node.vertices[1]);
@@ -77,7 +79,8 @@ function triangulateTree(point, desc, outTriangles, pointIndex, degen) {
 			
 			case 4:
 				if (node.descendents.length) {
-					return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+					if (degen) return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+					else triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
 					
 				} else {
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[1]], point, node.vertices[0], node.vertices[1]);
@@ -155,13 +158,12 @@ function computeTriangulation(points) {
 	var vertex3coordX = minx + (dx/2);
 	var vertex3coordY = miny + ((a + dx/2)/Math.tan(deg2rad*30)) + 0.1*dy;
 
-
-	var vertexTriangle1 = {'x':vertex1coordX, 'y':vertex1coordY, 'z':0.0};
-	points.unshift(vertexTriangle1);
-	var vertexTriangle2 = {'x':vertex2coordX, 'y':vertex2coordY, 'z':0.0};
-	points.unshift(vertexTriangle2);
 	var vertexTriangle3 = {'x':vertex3coordX, 'y':vertex3coordY, 'z':0.0};
 	points.unshift(vertexTriangle3);
+	var vertexTriangle2 = {'x':vertex2coordX, 'y':vertex2coordY, 'z':0.0};
+	points.unshift(vertexTriangle2);
+	var vertexTriangle1 = {'x':vertex1coordX, 'y':vertex1coordY, 'z':0.0};
+	points.unshift(vertexTriangle1);
 	
 	outputTriangles[0] = [0, 1, 2];
 
