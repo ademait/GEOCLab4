@@ -241,9 +241,7 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 	var detMat12v = computeDeterminant(vertex1, vertex2, vertex3);
 
 	if (detMat12v < 0) {
-		var aux = vertex2;
-		vertex2 = vertex3;
-		vertex3 = aux;
+		[vertex2, vertex3] = [vertex3, vertex2];
 		swap = true;
 	} 
 
