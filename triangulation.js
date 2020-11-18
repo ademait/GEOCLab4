@@ -36,9 +36,6 @@ function triangulateTree(point, desc, outTriangles, pointIndex, degen) {
 					return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
 					
 				} else {
-					var pointIndex = points.findIndex(function (element) {
-						return pointsAreEqual(element, point);
-					});
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[1]], point, node.vertices[0], node.vertices[1]);
 					var subTr2 = new TreeNode([pointIndex, node.triangle[1], node.triangle[2]], point, node.vertices[1], node.vertices[2]);
 					var subTr3 = new TreeNode([pointIndex, node.triangle[2], node.triangle[0]], point, node.vertices[2], node.vertices[0]);
@@ -83,9 +80,6 @@ function triangulateTree(point, desc, outTriangles, pointIndex, degen) {
 					return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
 					
 				} else {
-					var pointIndex = points.findIndex(function (element) {
-						return pointsAreEqual(element, point);
-					});
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[1]], point, node.vertices[0], node.vertices[1]);
 					var subTr2 = new TreeNode([pointIndex, node.triangle[0], node.triangle[2]], point, node.vertices[0], node.vertices[2]);
 					node.descendents.push(subTr1, subTr2);
