@@ -236,21 +236,23 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 	·4: p is in the edge v2-v3
 	*/
 	var type;  
-  
-	var detMat12p = computeDeterminant(vertex1, vertex2, p);
-	var detMat13p = computeDeterminant(vertex1, vertex3, p);
-	var detMat23p = computeDeterminant(vertex2, vertex3, p);
+	var swap = false;
   
 	var detMat12v = computeDeterminant(vertex1, vertex2, vertex3);
-	var detMat13v = computeDeterminant(vertex1, vertex3, vertex2);
-	var detMat23v = computeDeterminant(vertex2, vertex3, vertex1);
+
+	if (detMat12v < 0) {
+		var aux = vertex2;
+		vertex2 = vertex3;
+		vertex3 = aux;
+		swap = true;
+	} 
+
+	var detMat12p = computeDeterminant(vertex1, vertex2, p);
+	var detMat23p = computeDeterminant(vertex2, vertex3, p);
+	var detMat31p = computeDeterminant(vertex3, vertex1, p);
   
-	var multDet12 = detMat12p*detMat12v;
-	var multDet13 = detMat13p*detMat13v;
-	var multDet23 = detMat23p*detMat23v;
-  
-	if (multDet12 < 0 || multDet13 < 0 || multDet23 < 0) type = 1;
-	else if (multDet12 == 0) {
+	if (detMat12p > 0 && detMat31p > 0 && detMat23p > 0) type = 0;
+	else if (detMat12p == 0) {
   
 	  if (maxPoint(vertex1, vertex2)) {
   
@@ -265,7 +267,7 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 	  }
   
 	}
-	else if (multDet13 == 0) {
+	else if (detMat31p == 0) {
   
 	  if (maxPoint(vertex1, vertex3)) {
   
@@ -280,7 +282,7 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 	  }
   
 	}
-	else if (multDet23 == 0) {
+	else if (detMat23p == 0) {
   
 	  if (maxPoint(vertex2, vertex3)) {
   
@@ -295,8 +297,16 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 	  }
   
 	}
-	else if (multDet12 > 0 || multDet13 > 0 || multDet23 > 0) type = 0;
+	else type = 1;
 	
-	  
+	if (swap) {
+		switch(type) {
+			case 2:
+				type = 3;
+				break;
+			case 3:
+				type = 2
+		}
+	}
 	return type;
   }
