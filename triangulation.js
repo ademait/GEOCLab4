@@ -1,15 +1,27 @@
-"use strict"
+'use strict'
+
 /**
  TODO Replace this by your own, correct, triangulation function
  Triangles should be return as arrays of array of indexes
  e.g., [[1,2,3],[2,3,4]] encodes two triangles, where the indices are relative to the array points
 **/
+var tempsClassify = 0;
+var eraseElements = 0;
+var indexTriangle;
 
 class TreeNode {
-	constructor(triangle, vertex0, vertex1, vertex2) {
+	constructor(triangle, vertex0, vertex1, vertex2, index) {
 		this.triangle = triangle;
-		this.descendents = [];
+		this.descendents = undefined;
 		this.vertices = new Array(vertex0, vertex1, vertex2);
+		this.indexTriangle = index;
+	}
+}
+
+class outputTriangle {
+	constructor(triangle, index) {
+		this.triangle = triangle;
+		this.index = index;
 	}
 }
 
@@ -22,76 +34,75 @@ function eraseElement(array, triangle) {
 	array.splice(index, 1);
 }
 
-function triangulateTree(point, desc, outTriangles, pointIndex, degen) {
+function triangulateTree(point, desc, pointIndex) {
 
 	var numDesc = desc.length;
 
 	for (var i = 0; i<numDesc; i++) {
 		var node = desc[i];
+		var t0, t1;
+		t0 = performance.now();
 		var type = classifyPoint(point, node.vertices[0], node.vertices[1], node.vertices[2]);
-		
+		t1 = performance.now();
+		tempsClassify += (t1 - t0);
+
 		switch (type) {
 			case 0:
-				if (node.descendents.length) {
-					return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+				if (node.descendents) {
+					return triangulateTree(point, node.descendents, pointIndex);
 					
 				} else {
+					var index = node.indexTriangle;
+					node.indexTriangle = undefined;
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[1]], point, node.vertices[0], node.vertices[1]);
 					var subTr2 = new TreeNode([pointIndex, node.triangle[1], node.triangle[2]], point, node.vertices[1], node.vertices[2]);
 					var subTr3 = new TreeNode([pointIndex, node.triangle[2], node.triangle[0]], point, node.vertices[2], node.vertices[0]);
-					node.descendents.push(subTr1, subTr2, subTr3);
-					eraseElement(outTriangles, node.triangle);
-					outTriangles.push(subTr1.triangle, subTr2.triangle, subTr3.triangle);
-					return;
+					node.descendents = new Array(subTr1, subTr2, subTr3);
+					return [[subTr1, subTr2, subTr3], node.triangle, false, index];
 				}
-
+			
 			case 2:
-				if (node.descendents.length) {
-					if (degen) return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
-					else triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+				if (node.descendents) {
+					return triangulateTree(point, node.descendents, pointIndex);
 					
 				} else {
+					var index = node.indexTriangle;
+					node.indexTriangle = undefined;
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[2]], point, node.vertices[0], node.vertices[2]);
 					var subTr2 = new TreeNode([pointIndex, node.triangle[1], node.triangle[2]], point, node.vertices[1], node.vertices[2]);
-					node.descendents.push(subTr1, subTr2);
-					eraseElement(outTriangles, node.triangle);
-					outTriangles.push(subTr1.triangle, subTr2.triangle);
-					if (degen) return;
-					degen = true;
+					node.descendents = new Array(subTr1, subTr2);
+
+					return [[subTr1, subTr2], node.triangle, true, index];	
 				}
-				break;
+				
 			
 			case 3:
-				if (node.descendents.length) {
-					if (degen) return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
-					else triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+				if (node.descendents) {
+					return triangulateTree(point, node.descendents, pointIndex);
 					
 				} else {
+					var index = node.indexTriangle;
+					node.indexTriangle = undefined;
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[1]], point, node.vertices[0], node.vertices[1]);
 					var subTr2 = new TreeNode([pointIndex, node.triangle[1], node.triangle[2]], point, node.vertices[1], node.vertices[2]);
-					node.descendents.push(subTr1, subTr2);
-					eraseElement(outTriangles, node.triangle);
-					outTriangles.push(subTr1.triangle, subTr2.triangle);
-					if (degen) return;
-					degen = true;
+					node.descendents = new Array(subTr1, subTr2);
+					
+					return [[subTr1, subTr2], node.triangle, true, index];
 				}
-				break;
 			
 			case 4:
-				if (node.descendents.length) {
-					if (degen) return triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
-					else triangulateTree(point, node.descendents, outTriangles, pointIndex, degen);
+				if (node.descendents) {
+					return triangulateTree(point, node.descendents, pointIndex);
 					
 				} else {
+					var index = node.indexTriangle;
+					node.indexTriangle = undefined;
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[1]], point, node.vertices[0], node.vertices[1]);
 					var subTr2 = new TreeNode([pointIndex, node.triangle[0], node.triangle[2]], point, node.vertices[0], node.vertices[2]);
-					node.descendents.push(subTr1, subTr2);
-					eraseElement(outTriangles, node.triangle);
-					outTriangles.push(subTr1.triangle, subTr2.triangle);
-					if (degen) return;
-					degen = true;
+					node.descendents = new Array(subTr1, subTr2);
+	
+					return [[subTr1, subTr2], node.triangle, true, index];
 				}
-				break;
 		}		
 	}
 }
@@ -100,6 +111,7 @@ function triangulateTree(point, desc, outTriangles, pointIndex, degen) {
 
 function computeTriangulation(points) {
 	
+	var t0 = performance.now();
 	var n = points.length;
 	var outputTriangles = new Array; 
 
@@ -166,29 +178,57 @@ function computeTriangulation(points) {
 	points.unshift(vertexTriangle1);
 	
 	outputTriangles[0] = [0, 1, 2];
+	var tr = new TreeNode([0, 1, 2], vertexTriangle1, vertexTriangle2, vertexTriangle3, 0);
 
-	var tr = new TreeNode([0, 1, 2], vertexTriangle1, vertexTriangle2, vertexTriangle3);
-
+	var t1 = performance.now();
+	var string = "time preprocess: " + (t1 - t0).toFixed(0) + " milliseconds.";
+	console.log(string);
+	var n0, n1;
 	for (var i=3;i<n+3;i++) {
-
-		var type = classifyPoint(points[i], tr.vertices[0], tr.vertices[1], tr.vertices[2]);
-		if (type == 0) {
-			if (tr.descendents.length) {
-				triangulateTree(points[i], tr.descendents, outputTriangles, i, false);
-			} else {
-				var point = points[i];
-				var subTr1 = new TreeNode([i, 0, 1], point, tr.vertices[0], tr.vertices[1]);
-				var subTr2 = new TreeNode([i, 1, 2], point, tr.vertices[1], tr.vertices[2]);
-				var subTr3 = new TreeNode([i, 2, 0], point, tr.vertices[2], tr.vertices[0]);
-				tr.descendents.push(subTr1, subTr2, subTr3);
-				eraseElement(outputTriangles, tr.triangle);
-				outputTriangles.push(subTr1.triangle, subTr2.triangle, subTr3.triangle);
+		
+		if (tr.descendents) {
+			var ret = triangulateTree(points[i], tr.descendents, i);
+			// n0 = performance.now();
+			// eraseElement(outputTriangles, ret[1]);
+			// n1 = performance.now();
+			// eraseElements += (n1-n0);
+			var indexTrOut = ret[3];
+			outputTriangles[indexTrOut] = ret[0][0].triangle;
+			ret[0][0].indexTriangle = indexTrOut;
+			var outputLength = outputTriangles.length;
+			for (var m = 1; m<ret[0].length; m++) {
+				ret[0][m].indexTriangle = outputLength;
+				outputLength++;
+				outputTriangles.push(ret[0][m].triangle);
 			}
+			if (ret[2]) {
+				var secondRet = triangulateTree(points[i], tr.descendents, i);
+				var indexTr2Out = secondRet[3];
+				outputTriangles[indexTr2Out] = secondRet[0][0].triangle;
+				secondRet[0][0].indexTriangle = indexTr2Out;
+				for (var k = 1; k<secondRet[0].length; k++) {
+					secondRet[0][m].indexTriangle = outputLength;
+					outputLength++;
+					outputTriangles.push(secondRet[0][k].triangle);
+				}
+			}
+			
+			
+		} else {
+			var point = points[i];
+			tr.indexTriangle = undefined;
+			var subTr1 = new TreeNode([i, 0, 1], point, tr.vertices[0], tr.vertices[1], 0);
+			var subTr2 = new TreeNode([i, 1, 2], point, tr.vertices[1], tr.vertices[2], 1);
+			var subTr3 = new TreeNode([i, 2, 0], point, tr.vertices[2], tr.vertices[0], 2);
+			tr.descendents = new Array(subTr1, subTr2, subTr3);
+			outputTriangles[0] = subTr1.triangle;
+			outputTriangles.push(subTr2.triangle, subTr3.triangle);
 		}
 		
+		
 	}
-	
-
+	console.log("Classify points Total: " + tempsClassify + "ms");
+	console.log("erase points Total: " + eraseElements + "ms");
 	return outputTriangles;
 }
 
@@ -254,12 +294,15 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
   
 	  if (maxPoint(vertex1, vertex2)) {
   
+
 		if (minPoint(p, vertex2) || maxPoint(p, vertex1)) type = 1;
+		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
 		else type = 2;
 
 	  } else {
   
-		if (minPoint(p, vertex1) || maxPoint(p, vertex2)) type = 1;
+		if (minPoint(p, vertex1) || maxPoint(p, vertex2)) type = 1;		
+		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
 		else type = 2;
   
 	  }
@@ -270,11 +313,13 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 	  if (maxPoint(vertex1, vertex3)) {
   
 		if (minPoint(p, vertex3) || maxPoint(p, vertex1)) type = 1;
+		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
 		else type = 3;
 
 	  } else {
   
 		if (minPoint(p, vertex1) || maxPoint(p, vertex3)) type = 1;
+		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
 		else type = 3;
   
 	  }
@@ -285,11 +330,13 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 	  if (maxPoint(vertex2, vertex3)) {
   
 		if (minPoint(p, vertex3) || maxPoint(p, vertex2)) type = 1;
-		 else type = 4;
+		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
+		else type = 4;
 
 	  } else {
   
 		if (minPoint(p, vertex2) || maxPoint(p, vertex3)) type = 1;
+		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
 		else type = 4;
   
 	  }
