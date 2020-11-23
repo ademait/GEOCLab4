@@ -5,8 +5,6 @@
  Triangles should be return as arrays of array of indexes
  e.g., [[1,2,3],[2,3,4]] encodes two triangles, where the indices are relative to the array points
 **/
-var tempsClassify = 0;
-var eraseElements = 0;
 var indexTriangle;
 var firstDegen = false;
 
@@ -41,11 +39,7 @@ function triangulateTree(point, desc, pointIndex) {
 
 	for (var i = 0; i<numDesc; i++) {
 		var node = desc[i];
-		var t0, t1;
-		t0 = performance.now();
 		var type = classifyPoint(point, node.vertices[0], node.vertices[1], node.vertices[2]);
-		t1 = performance.now();
-		tempsClassify += (t1 - t0);
 
 		switch (type) {
 			case 0:
@@ -127,7 +121,6 @@ function triangulateTree(point, desc, pointIndex) {
 
 function computeTriangulation(points) {
 	
-	var t0 = performance.now();
 	var n = points.length;
 	var outputTriangles = new Array; 
 
@@ -196,18 +189,12 @@ function computeTriangulation(points) {
 	outputTriangles[0] = [0, 1, 2];
 	var tr = new TreeNode([0, 1, 2], vertexTriangle1, vertexTriangle2, vertexTriangle3, 0);
 
-	var t1 = performance.now();
-	var string = "time preprocess: " + (t1 - t0).toFixed(0) + " milliseconds.";
-	console.log(string);
-	var n0, n1;
 	for (var i=3;i<n+3;i++) {
 		
 		if (tr.descendents) {
+
 			var ret = triangulateTree(points[i], tr.descendents, i);
-			// n0 = performance.now();
-			// eraseElement(outputTriangles, ret[1]);
-			// n1 = performance.now();
-			// eraseElements += (n1-n0);
+
 			var indexTrOut = ret[3];
 			outputTriangles[indexTrOut] = ret[0][0].triangle;
 			ret[0][0].indexTriangle = indexTrOut;
@@ -217,6 +204,7 @@ function computeTriangulation(points) {
 				outputLength++;
 				outputTriangles.push(ret[0][m].triangle);
 			}
+
 			if (ret[2]) {
 				firstDegen = true;
 				var secondRet = triangulateTree(points[i], tr.descendents, i);
@@ -245,8 +233,6 @@ function computeTriangulation(points) {
 		
 		
 	}
-	console.log("Classify points Total: " + tempsClassify + "ms");
-	console.log("erase points Total: " + eraseElements + "ms");
 	return outputTriangles;
 }
 
@@ -255,30 +241,30 @@ function computeTriangulation(points) {
 function pointsAreEqual(p1, p2) {
 	
 	if (p1.x == p2.x && p1.y == p2.y) return true;
-  return false;
+ 	return false;
   
 }
 
 function minPoint(p1, p2) {
 
-if (p1.x < p2.x) return true;
-else if (p1.x > p2.x) return false;
-else {
-  if (p1.y < p2.y) return true;
-}
-return false;
+	if (p1.x < p2.x) return true;
+	else if (p1.x > p2.x) return false;
+	else {
+	if (p1.y < p2.y) return true;
+	}
+	return false;
 
 }
 
 function maxPoint(p1, p2) {
 
-if (p1.x > p2.x) return true;
-else if (p1.x < p2.x) return false;
-else {
+	if (p1.x > p2.x) return true;
+	else if (p1.x < p2.x) return false;
+	else {
 
-if (p1.y > p2.y) return true;
-}
-return false;
+	if (p1.y > p2.y) return true;
+	}
+	return false;
 
 }
 
@@ -314,18 +300,18 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 			if (firstDegen) type = 1;
 			else type = 2;
 		} 
-	  if (maxPoint(vertex1, vertex2)) {
+		if (maxPoint(vertex1, vertex2)) {
 
 
-		if (minPoint(p, vertex2) || maxPoint(p, vertex1)) type = 1;
-		else type = 2;
+			if (minPoint(p, vertex2) || maxPoint(p, vertex1)) type = 1;
+			else type = 2;
 
-	  } else {
-  
-		if (minPoint(p, vertex1) || maxPoint(p, vertex2)) type = 1;		
-		else type = 2;
-  
-	  }
+		} else {
+	
+			if (minPoint(p, vertex1) || maxPoint(p, vertex2)) type = 1;		
+			else type = 2;
+	
+		}
   
 	}
 	else if (detMat31p == 0) {
@@ -334,19 +320,19 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 			else type = 3;
 		} 
   
-	  if (maxPoint(vertex1, vertex3)) {
-  
-		if (minPoint(p, vertex3) || maxPoint(p, vertex1)) type = 1;
+		if (maxPoint(vertex1, vertex3)) {
 	
-		else type = 3;
+			if (minPoint(p, vertex3) || maxPoint(p, vertex1)) type = 1;
+		
+			else type = 3;
 
-	  } else {
-  
-		if (minPoint(p, vertex1) || maxPoint(p, vertex3)) type = 1;
+		} else {
 	
-		else type = 3;
-  
-	  }
+			if (minPoint(p, vertex1) || maxPoint(p, vertex3)) type = 1;
+		
+			else type = 3;
+	
+		}
   
 	}
 	else if (detMat23p == 0) {
@@ -355,17 +341,17 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
 			else type = 4;
 		} 
   
-	  if (maxPoint(vertex2, vertex3)) {
-  
-		if (minPoint(p, vertex3) || maxPoint(p, vertex2)) type = 1;
-		else type = 4;
+		if (maxPoint(vertex2, vertex3)) {
+	
+			if (minPoint(p, vertex3) || maxPoint(p, vertex2)) type = 1;
+			else type = 4;
 
-	  } else {
-  
-		if (minPoint(p, vertex2) || maxPoint(p, vertex3)) type = 1;
-		else type = 4;
-  
-	  }
+		} else {
+	
+			if (minPoint(p, vertex2) || maxPoint(p, vertex3)) type = 1;
+			else type = 4;
+	
+		}
   
 	}
 	else type = 1;
