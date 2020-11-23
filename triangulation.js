@@ -8,6 +8,7 @@
 var tempsClassify = 0;
 var eraseElements = 0;
 var indexTriangle;
+var firstDegen = false;
 
 class TreeNode {
 	constructor(triangle, vertex0, vertex1, vertex2, index) {
@@ -63,7 +64,11 @@ function triangulateTree(point, desc, pointIndex) {
 			
 			case 2:
 				if (node.descendents) {
-					return triangulateTree(point, node.descendents, pointIndex);
+					if (firstDegen) {
+						triangulateTree(point, node.descendents, pointIndex);
+						firstDegen = false;
+					}
+					else return triangulateTree(point, node.descendents, pointIndex);
 					
 				} else {
 					var index = node.indexTriangle;
@@ -71,14 +76,19 @@ function triangulateTree(point, desc, pointIndex) {
 					var subTr1 = new TreeNode([pointIndex, node.triangle[0], node.triangle[2]], point, node.vertices[0], node.vertices[2]);
 					var subTr2 = new TreeNode([pointIndex, node.triangle[1], node.triangle[2]], point, node.vertices[1], node.vertices[2]);
 					node.descendents = new Array(subTr1, subTr2);
-
+					
 					return [[subTr1, subTr2], node.triangle, true, index];	
 				}
+				break;
 				
 			
 			case 3:
 				if (node.descendents) {
-					return triangulateTree(point, node.descendents, pointIndex);
+					if (firstDegen) {
+						triangulateTree(point, node.descendents, pointIndex);
+						firstDegen = false;
+					}
+					else return triangulateTree(point, node.descendents, pointIndex);
 					
 				} else {
 					var index = node.indexTriangle;
@@ -89,11 +99,16 @@ function triangulateTree(point, desc, pointIndex) {
 					
 					return [[subTr1, subTr2], node.triangle, true, index];
 				}
+				break;
 			
 			case 4:
 				if (node.descendents) {
-					return triangulateTree(point, node.descendents, pointIndex);
-					
+					if (firstDegen) {
+						triangulateTree(point, node.descendents, pointIndex);
+						firstDegen = false;
+					}
+					else return triangulateTree(point, node.descendents, pointIndex);
+
 				} else {
 					var index = node.indexTriangle;
 					node.indexTriangle = undefined;
@@ -103,6 +118,7 @@ function triangulateTree(point, desc, pointIndex) {
 	
 					return [[subTr1, subTr2], node.triangle, true, index];
 				}
+				break;
 		}		
 	}
 }
@@ -202,15 +218,17 @@ function computeTriangulation(points) {
 				outputTriangles.push(ret[0][m].triangle);
 			}
 			if (ret[2]) {
+				firstDegen = true;
 				var secondRet = triangulateTree(points[i], tr.descendents, i);
 				var indexTr2Out = secondRet[3];
 				outputTriangles[indexTr2Out] = secondRet[0][0].triangle;
 				secondRet[0][0].indexTriangle = indexTr2Out;
 				for (var k = 1; k<secondRet[0].length; k++) {
-					secondRet[0][m].indexTriangle = outputLength;
+					secondRet[0][k].indexTriangle = outputLength;
 					outputLength++;
 					outputTriangles.push(secondRet[0][k].triangle);
 				}
+				firstDegen = false;
 			}
 			
 			
@@ -291,52 +309,60 @@ function classifyPoint(p, vertex1, vertex2, vertex3) {
   
 	if (detMat12p > 0 && detMat31p > 0 && detMat23p > 0) type = 0;
 	else if (detMat12p == 0) {
-  
+		
+		if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) {
+			if (firstDegen) type = 1;
+			else type = 2;
+		} 
 	  if (maxPoint(vertex1, vertex2)) {
-  
+
 
 		if (minPoint(p, vertex2) || maxPoint(p, vertex1)) type = 1;
-		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
 		else type = 2;
 
 	  } else {
   
 		if (minPoint(p, vertex1) || maxPoint(p, vertex2)) type = 1;		
-		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
 		else type = 2;
   
 	  }
   
 	}
 	else if (detMat31p == 0) {
+		if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex3)) {
+			if (firstDegen) type = 1;
+			else type = 3;
+		} 
   
 	  if (maxPoint(vertex1, vertex3)) {
   
 		if (minPoint(p, vertex3) || maxPoint(p, vertex1)) type = 1;
-		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
+	
 		else type = 3;
 
 	  } else {
   
 		if (minPoint(p, vertex1) || maxPoint(p, vertex3)) type = 1;
-		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
+	
 		else type = 3;
   
 	  }
   
 	}
 	else if (detMat23p == 0) {
+		if (pointsAreEqual(p,vertex2) || pointsAreEqual(p,vertex3)) {
+			if (firstDegen) type = 1;
+			else type = 4;
+		} 
   
 	  if (maxPoint(vertex2, vertex3)) {
   
 		if (minPoint(p, vertex3) || maxPoint(p, vertex2)) type = 1;
-		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
 		else type = 4;
 
 	  } else {
   
 		if (minPoint(p, vertex2) || maxPoint(p, vertex3)) type = 1;
-		else if (pointsAreEqual(p,vertex1) || pointsAreEqual(p,vertex2)) type = 1;
 		else type = 4;
   
 	  }
