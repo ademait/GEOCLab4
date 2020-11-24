@@ -1,13 +1,24 @@
 'use strict'
 
-/**
- TODO Replace this by your own, correct, triangulation function
- Triangles should be return as arrays of array of indexes
- e.g., [[1,2,3],[2,3,4]] encodes two triangles, where the indices are relative to the array points
-**/
+/* These two global variables are used to improve the efficency regarding execution time of the program
+-indexTriangle is used to store the index of the triangle in the outputTriangles array. Before that i used
+	a function that looked for the index every time i had to replace a triangle with another two or three
+	new triangles. The execution time of this function in Lanzarote was around 2500ms, so using a global
+	variable was a much better alternative.
+-firstDegen is used to know when a point is in a degenerative position. I use this boolean to know when to 
+	create the four new triangles if it's the case.
+*/
 var indexTriangle;
 var firstDegen = false;
 
+/* Each node of my structure -that simulates a tree- has the information of:
+-The triangle that forms.
+-The two or three triangles, called descendents, inside him -if there's any-. This will be of the type 
+	TreeNode also.
+-The three vertices that form the triangle.
+-The index of the triangle in the outputTriangles array. It's undefined when this triangle is erased from 
+	outputTriangles
+*/
 class TreeNode {
 	constructor(triangle, vertex0, vertex1, vertex2, index) {
 		this.triangle = triangle;
@@ -17,13 +28,8 @@ class TreeNode {
 	}
 }
 
-class outputTriangle {
-	constructor(triangle, index) {
-		this.triangle = triangle;
-		this.index = index;
-	}
-}
-
+/* This is the function I used to erase the triangle of outputTriangles which took so much computation time.
+I saved it only to justify the indexTriangle global variable
 function eraseElement(array, triangle) {
 	var index = array.findIndex(function (element) {
 		return element[0] == triangle[0] && 
@@ -31,8 +37,19 @@ function eraseElement(array, triangle) {
 				element[2] == triangle[2];
 	});
 	array.splice(index, 1);
-}
+}*/
 
+/* This is the function where is computed whether a point is inside a triangle or not. It's a recursive function, and
+returns an array:
+-[0]: An array of the two or three new triangles formed
+-[1]: The triangle where the triangles of [0] are into. This triangle has to be erased from outputTriangles.
+-[2]: Boolean which tells if it has to be done another call at this function -because of the degenerative points-
+-[3]: The index of the triangle at [1] of outputTriangles. 
+
+In this function it is used the firstDegen global variable. When it's true means that at the first triangle which the point
+is in a degenerative position -type > 1- it will not make a return. This will cause that it will keep executing the function
+until the second triangle is found, and then it will make a return, because firstDegen will be put in false.
+*/
 function triangulateTree(point, desc, pointIndex) {
 
 	var numDesc = desc.length;
@@ -161,7 +178,6 @@ function computeTriangulation(points) {
 	Then it will be subtracted or added the 10th percent of the width/height of the rectangle
 	to be sure none of the points of the set will be collinear with an edge of the triangle.
 	*/
-	// I use the ceiling value to work with integers only
 	var deg2rad = Math.PI/180;
 	var a = Math.ceil((dy/(Math.tan(deg2rad*60))));
 	var vertex1coordX = minx - a - 0.1*dx;
@@ -187,6 +203,7 @@ function computeTriangulation(points) {
 	points.unshift(vertexTriangle1);
 	
 	outputTriangles[0] = [0, 1, 2];
+	/* tr would be the root in a tree data structure */
 	var tr = new TreeNode([0, 1, 2], vertexTriangle1, vertexTriangle2, vertexTriangle3, 0);
 
 	for (var i=3;i<n+3;i++) {
@@ -204,7 +221,8 @@ function computeTriangulation(points) {
 				outputLength++;
 				outputTriangles.push(ret[0][m].triangle);
 			}
-
+			/* This is where i make the second call at triangulateTree if the point was in a 
+			degenerative position */
 			if (ret[2]) {
 				firstDegen = true;
 				var secondRet = triangulateTree(points[i], tr.descendents, i);
@@ -237,7 +255,8 @@ function computeTriangulation(points) {
 }
 
 
-
+/* This functions are the same of the ones of lab2.
+I only improved the performance of classify point. */
 function pointsAreEqual(p1, p2) {
 	
 	if (p1.x == p2.x && p1.y == p2.y) return true;
